@@ -1,0 +1,27 @@
+<h2>Create a Post</h2>
+
+<form (ngSubmit)="submitPost()">
+  <div>
+    <label for="content">Content:</label>
+    <textarea id="content" [(ngModel)]="post.content" name="content" required></textarea>
+  </div>
+
+<!-- 
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name='image' placeholder="Select file"/>
+    <br/>
+    <button>Upload</button>
+</form>
+    -->
+
+  <div>
+    <input type="file"  name="image" (change)="onFileSelected($event)" />
+    <!-- <button (click)="onUpload()">Upload</button> -->
+
+  </div>
+
+
+
+  <button type="submit">Submit</button>
+  
+</form>

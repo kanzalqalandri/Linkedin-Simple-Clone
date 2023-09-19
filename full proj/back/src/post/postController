@@ -1,0 +1,28 @@
+const Post = require('./postService');
+const userService = require('../user/userService')
+//require('../user/userService');
+
+// module.exports.createPost = async (req, res) => {
+//   try {
+//     console.log(req.body);
+//     const postDetails = {
+//       content: req.body.content,
+//     };
+//     const status = await Post.postDBService(postDetails);
+//     console.log(status);
+
+//     if (status) {
+//       res.send({ status: true, message: "post created successfully" });
+//     } else {
+//       console.log("createPost e shomossha");
+//       res.send({ status: false, message: "Error creating post" });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
+
+module.exports.getAllPosts = (req, res) => {
+  const userEmail=userService.email;
+  Post.getPost(userEmail,res);
+};

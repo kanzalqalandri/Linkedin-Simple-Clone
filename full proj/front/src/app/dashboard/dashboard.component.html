@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>W3.CSS Template</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    .logout {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="w3-top">
+  <div class="w3-bar" id="myNavbar">
+    <a class="w3-bar-item w3-button w3-hover-black w3-hide-medium w3-hide-large w3-right" href="javascript:void(0);" onclick="toggleFunction()" title="Toggle Navigation Menu">
+      <i class="fa fa-bars"></i>
+    </a>
+    <a routerLink="/post" class="w3-bar-item w3-button">CREATE POST</a>
+    <a routerLink="/notification" class="w3-bar-item w3-button w3-hide-small">NOTIFICATION</a>
+  </div>
+</div>
+<button (click)="logout()" class="w3-bar-item w3-button w3-hide-small logout">LOGOUT</button>
+<br>
+<div class="w3-center">
+  <h2>Posts</h2>
+
+  <!-- <div *ngFor="let post of posts">
+    <h3>{{ post.title }}</h3>
+    <p>Author: {{ post.username }}</p>
+    <p>{{ post.content }}</p>
+
+    //lunch
+    <img [src]="post.imageSrc" [alt]="post.imageName" *ngIf="post.imageSrc" />
+    <img *ngIf="post.imageSrc" [src]="post.imageSrc" alt="Post Image"><hr/>
+  </div> -->
+
+
+
+  <div class="post" *ngIf="posts.length > 0">
+    <div *ngFor="let post of posts">
+      <h4>Author: {{ post.username }}</h4>
+      <p>{{ post.content }}</p>
+      <img *ngIf="post.imageUrl" [src]="post.imageUrl" alt="Post Image" />
+      <hr style="border-color: black;" />
+    </div>
+  </div>
+
+  
+
+</div>
+<div class="bttn">
+    <button routerLink="/post">POST</button>
+    <button routerLink="/notification">NOTIFICATION</button><br>
+</div>
+<footer class="w3-center w3-blue w3-opacity w3-hover-opacity-off">
+  <p>Copyright- aaa</p>
+</footer>
+</body>
+</html>

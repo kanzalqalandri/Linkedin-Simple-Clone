@@ -1,0 +1,239 @@
+create table Course(
+Course_Number CHAR(7)
+Constraint Course_PK PRIMARY KEY,
+Description      VARCHAR(40) 
+CONSTRAINT Description_NN NOT NULL,
+Hours Number(2)
+Constraint Hours_Less_12_CK CHECK(Hours<12)
+ CONSTRAINT Hours_Greater_Zero
+       CHECK (Hours > 0) 
+)PCTFREE 5 PCTUSED 60
+TABLESPACE users; 
+
+
+
+ 
+INSERT INTO Course VALUES ('CMIS460','Advanced VB Programming',3);
+INSERT INTO Course VALUES ('CMIS565','Oracle DBA',3);
+
+
+
+
+CREATE TABLE Section (
+    Section_Number  Number(6),
+    Section_Term    CHAR(6)   CONSTRAINT Term_NN NOT NULL,
+    Section_Year    Number(4) CONSTRAINT Year_NN NOT NULL,
+    Course_Number   CHAR(7)   CONSTRAINT Section_To_Course_FK
+        REFERENCES Course(Course_Number)
+        ON DELETE SET NULL,
+    Location        CHAR(10)  CONSTRAINT Location_NN NOT NULL,
+  CONSTRAINT Section_PK 
+    PRIMARY KEY (Section_Number, Section_Term, Section_Year)   
+    )
+PCTFREE 20 PCTUSED 65
+TABLESPACE users;
+
+
+INSERT INTO Section 
+    VALUES (111111,'Summer', 2012,'CMIS565','FH-3208');
+INSERT INTO Section 
+    VALUES (222222,'Fall', 2012, 'CMIS565','FH-3103');
+INSERT INTO Section 
+    VALUES (111112,'Fall', 2012, 'CMIS460','FH-3208');
+INSERT INTO Section 
+    VALUES (111113,'Summer', 2012, 'CMIS460','FH-0301');
+
+
+
+
+CREATE TABLESPACE Data01 
+   DATAFILE 'temp1.dbf' 
+   SIZE 100M;
+
+CREATE TABLESPACE Index01 
+   DATAFILE 'temp2.dbf' 
+   SIZE 100M;
+
+
+
+CREATE TABLE Student (
+    SSN                CHAR(9) 
+        CONSTRAINT Student_PK PRIMARY KEY
+           USING INDEX Tablespace Index01
+           PCTFREE 5, 
+    Student_Name       VARCHAR(50)
+        CONSTRAINT Student_Name_NN NOT NULL,
+    Account_Balance    NUMBER(7,2),
+    Date_Birth         Date Default NULL
+    )PCTFREE 10 PCTUSED 40
+Tablespace Data01;
+
+
+
+
+
+
+
+CREATE TABLE Enroll (
+    SSN                CHAR(9),
+    Section_Number     NUMBER(6),
+    Enroll_Term        CHAR(6),
+    Enroll_Year        NUMBER(4),
+    Grade              CHAR(2)
+        CONSTRAINT Grade_Check_CK
+            CHECK (Grade IN
+                ('A','B','C','D','E','WP')), 
+    CONSTRAINT Enr_Stu_SSN_FK FOREIGN KEY (SSN) 
+        REFERENCES Student
+            ON DELETE CASCADE,
+    CONSTRAINT Enr_Section_Number_FK
+        FOREIGN KEY (Section_Number, 
+            Enroll_Term, Enroll_Year)
+        REFERENCES Section
+            ON DELETE CASCADE,
+    CONSTRAINT Enroll_PK
+        PRIMARY KEY (SSN, Section_Number, 
+            Enroll_Term, Enroll_Year)
+        USING INDEX Tablespace Index01 
+        PCTFREE 5
+    )
+PCTFREE 30 PCTUSED 65
+Tablespace Data01;
+
+
+
+CREATE TABLE Faculty (
+    Fac_SSN             CHAR(9),
+    First_Name          VARCHAR(25)
+        CONSTRAINT First_Name_NN NOT NULL,
+    Last_Name           VARCHAR(25)
+        CONSTRAINT Last_Name_NN NOT NULL,
+    Fac_Dept            VARCHAR(12),
+    Fac_Supervisor_SSN  CHAR(9),
+    CONSTRAINT Faculty_PK
+        PRIMARY KEY (Fac_SSN)
+        USING INDEX Tablespace Index01
+        PCTFREE 5,
+    CONSTRAINT Fac_Supervisor_FK
+        FOREIGN KEY (Fac_Supervisor_SSN)
+            REFERENCES Faculty
+            ON DELETE SET NULL
+    )
+PCTFREE 15 PCTUSED 65
+Tablespace Data01; 
+
+
+
+
+
+CREATE TABLE states_iot (
+    State_ID          CHAR(2)
+        CONSTRAINT State_ID_PK PRIMARY KEY, 
+    State_Name        VARCHAR2(50),
+    Population        NUMBER )
+  ORGANIZATION INDEX 
+  TABLESPACE Data01
+  PCTTHRESHOLD 20
+  OVERFLOW TABLESPACE Data01;
+
+
+
+
+
+CREATE TABLE admin_doc_iot(
+    token            char(20), 
+    doc_id           NUMBER,
+    token_frequency  NUMBER,
+    token_offsets    VARCHAR2(512),
+        CONSTRAINT admin_doc_iot_PK 
+            PRIMARY KEY (token, doc_id))
+  ORGANIZATION INDEX COMPRESS
+  TABLESPACE Data01
+  PCTTHRESHOLD 20
+  INCLUDING token_frequency
+  OVERFLOW TABLESPACE Data01;
+
+
+
+ 
+CREATE TABLE Test_Parallel
+    PARALLEL COMPRESS
+    AS SELECT * FROM PRODUCT
+    WHERE Retail_Price > 200;
+
+
+cluster
+
+CREATE CLUSTER OrderCluster
+    ( OrderId NUMBER(3) )
+    PCTUSED 60
+    PCTFREE 40
+    SIZE 1200
+    Tablespace Data01;
+
+
+CREATE INDEX OrderClusterIndex
+    ON CLUSTER OrderCluster
+        INITRANS 2
+        MAXTRANS 5
+    Tablespace Index01;
+
+
+
+CREATE TABLE TestOrders (
+    OrderId           NUMBER(3) 
+      CONSTRAINT TestOrders_PK Primary Key
+      USING INDEX Tablespace Index01,
+    OrderDate         DATE 
+      CONSTRAINT OrderDate_NN NOT NULL,
+    Order_Amount       NUMBER(10,2) )
+  CLUSTER OrderCluster (OrderId) ;
+
+
+
+CREATE TABLE TestOrderDetails (
+    ProductId          NUMBER(5),
+    OrderId            NUMBER(3),
+    Quantity_Ordered   NUMBER(3)
+      CONSTRAINT Quantity_Ordered_CK
+        CHECK (Quantity_Ordered >= 0),
+    ItemPrice          NUMBER(10,2),
+  CONSTRAINT TestOrderDetails_FK FOREIGN KEY (OrderId)
+      REFERENCES TestOrders
+      ON DELETE CASCADE,
+  CONSTRAINT TestOrderDetails_PK 
+      PRIMARY KEY (ProductId, OrderId) 
+      USING INDEX Tablespace Index01 )
+  CLUSTER OrderCluster (OrderId) ;
+
+
+
+SELECT /* + RULE */  df.tablespace_name "Tablespace",
+       df.bytes / (1024 * 1024) "Size (MB)",
+       SUM(fs.bytes) / (1024 * 1024) "Free (MB)",
+       Nvl(Round(SUM(fs.bytes) * 100 / df.bytes),1) "% Free",
+       Round((df.bytes - SUM(fs.bytes)) * 100 / df.bytes) "% Used"
+  FROM dba_free_space fs,
+       (SELECT tablespace_name,SUM(bytes) bytes
+          FROM dba_data_files
+         GROUP BY tablespace_name) df
+ WHERE fs.tablespace_name (+)  = df.tablespace_name
+ GROUP BY df.tablespace_name,df.bytes
+UNION ALL
+SELECT /* + RULE */ df.tablespace_name tspace,
+       fs.bytes / (1024 * 1024),
+       SUM(df.bytes_free) / (1024 * 1024),
+       Nvl(Round((SUM(fs.bytes) - df.bytes_used) * 100 / fs.bytes), 1),
+       Round((SUM(fs.bytes) - df.bytes_free) * 100 / fs.bytes)
+  FROM dba_temp_files fs,
+       (SELECT tablespace_name,bytes_free,bytes_used
+          FROM v$temp_space_header
+         GROUP BY tablespace_name,bytes_free,bytes_used) df
+ WHERE fs.tablespace_name (+)  = df.tablespace_name
+ GROUP BY df.tablespace_name,fs.bytes,df.bytes_free,df.bytes_used
+ ORDER BY 4 DESC;
+
+
+
+
+

@@ -1,0 +1,6 @@
+<div *ngFor="let notification of notifications">
+    <p>{{ notification.message }}</p>
+    <hr style="border-color: black;" />
+
+    <button type="submit" class="btn btn-primary" (click)="show()">view</button>
+  </div>
